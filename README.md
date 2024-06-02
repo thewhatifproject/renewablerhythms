@@ -53,10 +53,17 @@ The project uses public datasets detailing daily renewable energy production in 
 Each energy type is represented by particles that move across a digital canvas. The movements of these particles are influenced by a flow field, an invisible vector field that directs the particles’ paths, akin to natural currents.
 
 ### Perlin Noise Function
-To simulate natural motion, the project uses Perlin noise—a gradient noise function that creates visually smooth, coherent random patterns.
+To simulate natural motion, the project uses Perlin noise—a gradient noise function that creates visually smooth, coherent random patterns. This function is defined as:
+```math
+N(x, y) = \sum_{i=1}^n a_i \cdot \text{noise}(f_i \cdot (x, y))
+```
+where $\(a_i\)$ are amplitude coefficients and $\(f_i\)$ are frequency coefficients.
 
 ### Particle System
-Particles vary in speed, size, blur, and color intensity based on the amount of energy produced daily. Higher energy outputs result in more vigorous and lively particle movements, providing a visual representation of energy production levels.
+Particles vary in speed, size, blur, and color intensity based on the amount of energy produced daily. Higher energy outputs result in more vigorous and lively particle movements, providing a visual representation of energy production levels. The velocity \(\mathbf{v}\) of a particle at position \(\mathbf{p}\) influenced by the flow field \(\mathbf{F}\) can be described as:
+```math
+\mathbf{v}(t) = \mathbf{F}(\mathbf{p}(t))
+```
 
 ### Ethical AI Contributions
 The AI enhances the project by automating parts of the creative coding process. The project leverages the capabilities of Large Language Models (LLMs) to co-generate programming code, working in tandem with human programmers. This approach maximizes both efficiency and creative output.
@@ -67,19 +74,40 @@ The AI enhances the project by automating parts of the creative coding process. 
 The Data Painting is realized through a synergistic approach that combines the strengths of AI and human expertise. The implementation utilizes the p5.js library, known for its inclusivity and broad accessibility.
 
 ### Sound System Dynamics
-The sound component enriches the interactive experience. Each energy source is associated with a unique sound, and the volume and pitch of the sound vary according to the energy production values.
+The sound component enriches the interactive experience. Each energy source is associated with a unique sound, and the volume and pitch of the sound vary according to the energy production values:
+```math
+\text{volume} = \text{minVolume} + (\text{maxVolume} - \text{minVolume}) \times \left( \frac{\text{energyValue}}{\text{maxEnergyValue}} \right)
+```
+```math
+\text{pitch} = \text{minPitch} + (\text{maxPitch} - \text{minPitch}) \times \left( \frac{\text{energyValue}}{\text{maxEnergyValue}} \right)
+```
 
 ### Particle Characteristics
-Each particle represents a unique measurement of energy produced by different renewable sources. The attributes of particles, such as size, speed, and color, are dynamically adjusted based on the energy production values.
+Each particle represents a unique measurement of energy produced by different renewable sources. The attributes of particles, such as size, speed, and color, are dynamically adjusted based on the energy production values. For instance:
+```math
+\text{size} = \text{minSize} + (\text{maxSize} - \text{minSize}) \times \left( \frac{\text{energyValue}}{\text{maxEnergyValue}} \right)^{0.3}
+```
+```math
+\text{velocity} = \mathbf{v}(t) = \mathbf{F}(\mathbf{p}(t))
+```
 
 ### Flow Field Generation
-The flow field is generated using Perlin noise, ensuring smooth transitions and natural movement.
+The flow field is generated using Perlin noise, ensuring smooth transitions and natural movement. The magnitude and direction of each vector in the flow field are influenced by the noise function:
+```math
+\mathbf{F}(x, y, t) = \nabla \text{Perlin}(x, y, z(t))
+```
 
 ### Interaction and Control
-The visualization allows user interaction through mouse and touch inputs, enabling control over playback, sound, and screen modes.
+The visualization allows user interaction through mouse and touch inputs, enabling control over playback, sound, and screen modes. For instance, clicking on the canvas influences the particles' movement, creating a ripple effect:
+```math
+\mathbf{F}_{\text{click}}(x, y) = \mathbf{F}(x, y) + k \cdot \frac{\mathbf{p} - \mathbf{p}_{\text{click}}}{|\mathbf{p} - \mathbf{p}_{\text{click}}|}
+```
 
 ### Fade Function for Particles
-Particles have a limited lifespan and a fade function that determines their transparency over time.
+Particles have a limited lifespan and a fade function that determines their transparency over time:
+```math
+\alpha(t) = \max\left(0, 1 - \frac{t}{\text{lifespan}}\right)
+```
 
 ### Color Map for Particles
 - Biomass: RGB(154, 205, 50)
@@ -96,7 +124,16 @@ Particles have a limited lifespan and a fade function that determines their tran
 - Hydro Highlight: RGB(118, 182, 196)
 
 ### Glow Effect
-Particles exhibit a glow effect that varies based on their velocity intensity.
+Particles exhibit a glow effect that varies based on their velocity intensity:
+```math
+\text{glowIntensity} = \frac{\|\mathbf{v}\|}{\text{maxspeed}}
+```
+```math
+\text{glowSize} = \text{size} \times (1 + 0.5 \times \text{glowIntensity})
+```
+```math
+\text{glowAlpha} = 70 \times \text{glowIntensity}
+```
 
 ## Results
 The interactive canvas allows users to visualize the fluctuating nature of renewable energy production. The use of color intensity, particle speed, and flow dynamics effectively conveys the energy output’s variability and the transition towards more sustainable energy sources.
