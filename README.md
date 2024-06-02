@@ -13,7 +13,7 @@ cd renewablerhythms
 ```
 
 ## File Structure
-The following is the directory structure for the project:
+The following is the directory structure to prepare for the project:
 
 RenewableRhythms/\
 │\
@@ -31,9 +31,8 @@ RenewableRhythms/\
 │ ├── p5.min.js # p5.js library\
 │ └── p5.sound.min.js # p5.js sound library\
 │\
-├── index.html # Main HTML file\
-├── sketch.js # Main JavaScript file containing the p5.js code\
-└── README.md # Project README file\
+├── index.html # Main HTML file in the repo\
+├── sketch.js # Main JavaScript file containing the p5.js code in the repo
 
 ### Usage
 To run the project, open the `index.html` file in a web browser.
