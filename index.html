@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Visualizing Energy Transition through Ethical AI-Data Driven Creative Coding">
+    <meta name="author" content="Daniele Giannini">
+    <title>Renewable Rhythms</title>
+    <link rel="icon" href="icons/favico.ico" type="image/x-icon">
+    <script src="lib/p5.min.js"></script>
+    <script src="lib/p5.sound.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+
+    <!-- Open Graph / Facebook / LinkedIn -->
+    <meta property="og:title" content="Renewable Rhythms">
+    <meta property="og:description" content="Visualizing Energy Transition through Ethical AI-Data Driven Creative Coding">
+    <meta property="og:image" content="https://www.thewhatifproject.com/renewable/img/metashare.jpg">
+    <meta property="og:url" content="https://www.thewhatifproject.com/renewable/index.html">
+    <meta property="og:type" content="website">
+</head>
+
+<body>
+    <div id="loadingScreen">
+        <div>
+            <img src="icons/sound.png" alt="Headphones">
+            <img src="icons/screen.png" alt="Screen">
+        </div>
+        <h1 class="bold-loading">RENEWABLE RHYTHMS</h1>
+        <p class="light-loading" id="StartText">Loading Data, please wait...</p>
+        <div class="light-loading" id="LoadingIcon">
+            <img src="icons/loading.gif" alt="Loading...">
+        </div>
+        <div>
+            <button class="left-button" onclick="onStartFull()" id="StartFull" disabled>Start Full Experience</button>
+            <button class="left-button" onclick="onStart()" id="Start" disabled>Continue without Audio</button>
+        </div>
+    </div>
+    <main>
+        <div class="container">
+            <div class="left-panel">
+                <div class="title-section">
+                    <span class="bold custom-margin-def" id="Title">RENEWABLE RHYTHMS</span>
+                    <span class="normal custom-margin-def" id="Subtitle">Visualizing Energy Transition through Ethical AI-Data Driven Creative Coding</span>
+                    <span class="light-oblique custom-margin-demi" id="Subtitle"><a href="https://thewhatifproject.com" class="light-oblique custom-margin-demi" id="Subtitle">Daniele Giannini / thewhatifproject.com</a></span>
+                    <button class="left-button label-container" onclick="onGoToPaper()" id="ReadPaper">Read Paper</button>
+                </div>
+            </div>
+            <div id="renewable-canva" class="center-panel">
+                <!-- Qui andrà il canvas di p5.js -->
+            </div>
+            <div class="right-panel">
+                <div class="info-section">
+                    <div class="labels">
+                        <div class="label-container custom-margin-demi">
+                            <span class="legend-circle" style="background-color:"></span>
+                            <span class="demi-bold" id="Date-label">Date: </span>
+                        </div>
+                        <div class="label-container custom-margin-def">
+                            <span class="legend-circle" style="background-color: #cf1020;"></span>
+                            <span class="demi-bold" id="Geothermal-label">Geothermal:</span>
+                        </div>
+                        <div class="label-container custom-margin-def">
+                            <span class="legend-circle" style="background-color: #1767d7;"></span>
+                            <span class="demi-bold" id="Hydro-label">Hydro:</span>
+                        </div>
+                        <div class="label-container custom-margin-def">
+                            <span class="legend-circle" style="background-color: #99cc33;"></span>
+                            <span class="demi-bold" id="Biomass-label">Biomass:</span>
+                        </div>
+                        <div class="label-container custom-margin-def">
+                            <span class="legend-circle" style="background-color: #ffd700;"></span>
+                            <span class="demi-bold" id="Photovoltaic-label">Photovoltaic:</span>
+                        </div>
+                        <div class="label-container">
+                            <span class="legend-circle" style="background-color: #fffafa;"></span>
+                            <span class="demi-bold" id="Wind-label">Wind:</span>
+                        </div>
+                    </div>
+                    <div class="values">
+                        <div class="value-container custom-margin-demi">
+                            <span class="demi-bold" id="Date-value"></span>
+                        </div>
+                        <div class="value-container custom-margin-def">
+                            <span class="normal" id="Geothermal-value">0 GWh</span>
+                        </div>
+                        <div class="value-container custom-margin-def">
+                            <span class="normal" id="Hydro-value">0 GWh</span>
+                        </div>
+                        <div class="value-container custom-margin-def">
+                            <span class="normal" id="Biomass-value">0 GWh</span>
+                        </div>
+                        <div class="value-container custom-margin-def">
+                            <span class="normal" id="Photovoltaic-value">0 GWh</span>
+                        </div>
+                        <div class="value-container">
+                            <span class="normal" id="Wind-value">0 GWh</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="button-section">
+                    <button class="right-button" id="SoundsOnOff" onclick="onEnableVolume()">
+                        <img src="icons/volume.png" id="SoundsOnOffIcon" alt="Enable/Disable Sounds">
+                    </button>
+                    <button class="right-button" id="PlayPause" onclick="onClickPause()">
+                        <img src="icons/pause.png" id="PlayPauseIcon" alt="Play/Pause">
+                    </button>
+                    <button class="right-button" id="Refresh" onclick="onRefreshCanvas()">
+                        <img src="icons/refresh.png" id="RefreshIcon" alt="Refresh">
+                    </button>
+                    <button class="right-button" id="Snapshot" onclick="onSaveCanvas()">
+                        <img src="icons/camera.png" alt="Snapshot">
+                    </button>
+                    <button class="right-button" id="ToogleLabels" onclick="onToggleLabels()">
+                        <img src="icons/show.png" id="ToogleLabelsIcon" alt="Hide/Show Labels">
+                    </button>
+                    <button class="right-button" id="Fullscreen" onclick="onFullScreen()">
+                        <img src="icons/fullscreen.png" alt="Fullscreen">
+                    </button>
+                </div>
+            </div>
+    </main>
+    <script src="sketch.js"></script>
+</body>
+
+</html>
