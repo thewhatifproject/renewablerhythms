@@ -1,4 +1,7 @@
 # Renewable Rhythms: Visualizing Energy Transition through Ethical AI-Data Driven Creative Coding
+
+[Paper](https://www.researchgate.net/publication/380842244_Renewable_Rhythms_Visualizing_Energy_Transition_through_Ethical_AI-Data_Driven_Creative_Coding)
+
 ![Renewable Rhythms](https://github.com/thewhatifproject/renewablerhythms/assets/171494923/b67d42ef-82e8-4530-a71d-7d375733b24f)
 
 ## Abstract
@@ -145,6 +148,18 @@ Renewable Rhythms highlights the power of data visualization in storytelling, pa
 
 # Contributing
 Contributions are welcome! Please fork the repository and create a pull request.
+
+# Citation
+If you use this project for a publication, please cite the [paper](https://www.researchgate.net/publication/380842244_Renewable_Rhythms_Visualizing_Energy_Transition_through_Ethical_AI-Data_Driven_Creative_Coding):
+```bibtex
+@article{renewablerhythms,
+  title={Renewable Rhythms: Visualizing Energy Transition through Ethical AI-Data Driven Creative Coding},
+  author={Daniele Giannini as The 'What If' Project},
+  journal={Research Gate},
+  year={2024},
+  doi={http://dx.doi.org/10.13140/RG.2.2.14286.47680}
+}
+```
 
 # License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
