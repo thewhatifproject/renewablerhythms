@@ -3,7 +3,6 @@
 // Don't forget to mentionthe author if you copy something!
 // Icon design credit: heisenberg_jr from Flaticon
 
-
 // Initialize empty array for particle objects and an empty object for storing daily production data
 let particles = [];
 let dailyData = {};
@@ -16,6 +15,7 @@ let cols, rows;
 let productionData;
 let flowfields = {};
 let maxEnergyValueDay = 0;
+let dailyParticles = {};
 
 // Canvas and control variables for rendering and interaction
 let canvas;
@@ -36,11 +36,21 @@ let soundPhotovoltaic;
 let soundEnabled = false; // Flag to toggle sound on and off
 let isCanvaFull = false; // Flag to toggle full screen mode
 
+let isRestart = true; // Flag to indicate if the visualization is being restarted
+
 // Constants for particle size and speed
 const minSize = 1;
-const maxSize = 6;
+const maxSize = 5.5;
 const minSpeed = 1;
-const maxSpeed = 5.5;
+const maxSpeed = 6;
+
+let energyTotals = new Map([
+    ['Biomass', 0],
+    ['Wind', 0],
+    ['Photovoltaic', 0],
+    ['Geothermal', 0],
+    ['Hydro', 0]
+]);
 
 // Loading Resources Checker
 let resourcesLoaded = {
@@ -72,6 +82,8 @@ const config = {
     }
 };
 
+p5.disableFriendlyErrors = true;
+
 // Preload function for loading data and sounds before visualization starts
 function preload() {
     loadTable('data/dailyproduction.csv', 'csv', 'header', (table) => {
@@ -80,34 +92,50 @@ function preload() {
         checkAllResourcesLoaded();
     });
 
-    loadSound('sounds/Biomass.mp3', (sound) => {
-        resourcesLoaded.sounds.biomass = true;
-        soundBiomass = sound;
-        checkAllResourcesLoaded();
+    soundBiomass = new Howl({
+        src: ['sounds/Biomass.mp3'],
+        loop: true,
+        onload: () => {
+            resourcesLoaded.sounds.biomass = true;
+            checkAllResourcesLoaded();
+        }
     });
 
-    loadSound('sounds/Wind.mp3', (sound) => {
-        resourcesLoaded.sounds.wind = true;
-        soundWind = sound;
-        checkAllResourcesLoaded();
+    // Ripeti per gli altri suoni
+    soundWind = new Howl({
+        src: ['sounds/Wind.mp3'],
+        loop: true,
+        onload: () => {
+            resourcesLoaded.sounds.wind = true;
+            checkAllResourcesLoaded();
+        }
     });
 
-    loadSound('sounds/Geothermal.mp3', (sound) => {
-        resourcesLoaded.sounds.geothermal = true;
-        soundGeothermal = sound;
-        checkAllResourcesLoaded();
+    soundGeothermal = new Howl({
+        src: ['sounds/Geothermal.mp3'],
+        loop: true,
+        onload: () => {
+            resourcesLoaded.sounds.geothermal = true;
+            checkAllResourcesLoaded();
+        }
     });
 
-    soundHydro = loadSound('sounds/Hydro.mp3', (sound) => {
-        resourcesLoaded.sounds.hydro = true;
-        soundHydro = sound;
-        checkAllResourcesLoaded();
+    soundHydro = new Howl({
+        src: ['sounds/Hydro.mp3'],
+        loop: true,
+        onload: () => {
+            resourcesLoaded.sounds.hydro = true;
+            checkAllResourcesLoaded();
+        }
     });
 
-    soundPhotovoltaic = loadSound('sounds/Photovoltaic.mp3', (sound) => {
-        resourcesLoaded.sounds.photovoltaic = true;
-        soundPhotovoltaic = sound;
-        checkAllResourcesLoaded();
+    soundPhotovoltaic = new Howl({
+        src: ['sounds/Photovoltaic.mp3'],
+        loop: true,
+        onload: () => {
+            resourcesLoaded.sounds.photovoltaic = true;
+            checkAllResourcesLoaded();
+        }
     });
 }
 
@@ -166,7 +194,6 @@ function setup() {
     cols = floor(width / scl); // Calculate number of columns for flow field grid
     rows = floor(height / scl); // Calculate number of rows for flow field grid
     initializeFlowFields(); // Initialize flow fields for each energy type
-    noLoop(); // Stop the drawing loop until started explicitly
 }
 
 // Function triggered by touch press, used to control playback and resizing
@@ -205,7 +232,7 @@ function onClickPause() {
 
 // Function to handle redirection to a research paper
 function onGoToPaper() {
-    window.open('https://www.thewhatifproject.com/wp-content/uploads/2024/05/Renewable_Rhytms_Paper.pdf', '_blank'); // Open link in a new tab
+    window.open('https://www.researchgate.net/publication/380842244_Renewable_Rhythms_Visualizing_Energy_Transition_through_Ethical_AI-Data_Driven_Creative_Coding', '_blank'); // Open link in a new tab
 }
 
 // Function to refresh and restart the entire canvas and visualization
@@ -337,15 +364,6 @@ function getSoundForEnergyType(type) {
     }
 }
 
-// Function to set custom volume for all sounds
-function setCustomVolume(volume) {
-    soundBiomass.setVolume(volume);
-    soundWind.setVolume(volume);
-    soundGeothermal.setVolume(volume);
-    soundHydro.setVolume(volume);
-    soundPhotovoltaic.setVolume(volume);
-}
-
 // Function to play all sounds if sound is enabled
 function playSounds() {
     if (soundEnabled) {
@@ -370,11 +388,11 @@ function pauseSounds() {
 
 // Function to set all sounds to loop, ensuring continuous playback
 function initSounds() {
-    soundBiomass.loop();
-    soundWind.loop();
-    soundGeothermal.loop();
-    soundHydro.loop();
-    soundPhotovoltaic.loop();
+    soundBiomass.play();
+    soundWind.play();
+    soundGeothermal.play();
+    soundHydro.play();
+    soundPhotovoltaic.play();
 }
 
 // Function to stop all sounds
@@ -402,18 +420,24 @@ function resetAndRestart() {
     stopSounds(); // Stop all sounds
     clear(); // Clear the canvas
     particles = []; // Reset particles array
-    particlesForToday = {}; // Reset particles for the current day
     flowfields = {}; // Reset flow fields
-    energyTotals = {}; // Reset energy totals
-    dailyData = {}; // Reset daily data
-    dates = []; // Reset dates array
     currentDateIndex = 0; // Reset current date index
     lastUpdate = 0; // Reset last update time
     zoff = 0; // Reset z offset for noise function
     isCanvaFull = false; // Reset full screen state
     maxEnergyValueDay = 0; // Reset maximum energy value for a day
+    isRestart = true; // Set restart flag
     document.getElementById('PlayPauseIcon').src = 'icons/pause.png'; // Get play/pause icon element
-    setup(); // Re-run setup to reinitialize the environment
+    dailyParticles = {}; // Reset dailyParticles
+    energyTotals = new Map([
+        ['Biomass', 0],
+        ['Wind', 0],
+        ['Photovoltaic', 0],
+        ['Geothermal', 0],
+        ['Hydro', 0]
+    ]);
+    createParticlesFromData(); // Recreate particles
+    initializeFlowFields(); // Initialize flow fields for each energy type
     loop(); // Start the drawing loop
 }
 
@@ -436,7 +460,7 @@ function updateUI(currentDate) {
     const formattedDate = currentDate.split('-').reverse().join('/'); // Format the current date
     document.getElementById('Date-value').innerText = `${formattedDate}`; // Update the date display
 
-    let energyTotalsToday = dailyData[currentDate] || {}; // Retrieve energy totals for the current date
+    let energyTotalsToday = dailyParticles[currentDate] || {}; // Retrieve energy totals for the current date
     energyTotalsToday.forEach(dailyObj => {
         if (document.getElementById(dailyObj.energyType + "-value")) {
             document.getElementById(dailyObj.energyType + "-value").innerText = (`${dailyObj.energyValue.toFixed(2)} GWh`); // Update the display for each energy type
@@ -460,7 +484,7 @@ function createParticlesFromData() {
     for (let date in dailyData) {
         let dailyGenerations = dailyData[date].map(data => data.generation); // Extract generation values for the date
         let maxEnergyValueDay = Math.max(...dailyGenerations); // Determine the maximum generation value for the date
-        dailyData[date] = dailyData[date].map(data => new Particle(
+        dailyParticles[date] = dailyData[date].map(data => new Particle(
             data.source,
             data.generation,
             maxEnergyValueDay, // Use the maximum daily generation as a scaling factor
@@ -520,8 +544,9 @@ function draw() {
         particles.forEach(particle => {
             particle.show(); // Display each particle
         });
-        if (soundEnabled && lastUpdate === 0) {
+        if (soundEnabled && isRestart) {
             initSounds(); // Initialize sounds if sound is enabled and it's the first update
+            isRestart = false; // Reset restart flag
         }
         updateParticles(); // Update particle positions and states
         lastUpdate = currentTime; // Update last update time
@@ -549,7 +574,7 @@ function updateBackground() {
 function updateParticles() {
     if (currentDateIndex < dates.length && dates.length > 0) {
         let currentDate = dates[currentDateIndex]; // Get the current date
-        let particlesForToday = dailyData[currentDate]; // Retrieve particles for the current date
+        let particlesForToday = dailyParticles[currentDate]; // Retrieve particles for the current date
         let maxEnergyValueDay = Math.max(...particlesForToday.map(p => p.energyValue)); // Calculate the maximum energy value for the current date
 
         let energyValuesByType = new Map(); // Initialize a map to store energy values by type
@@ -564,11 +589,63 @@ function updateParticles() {
             }
         });
         zoff += 0.01; // Increment z offset for flow field animation
-        particles = particles.concat(particlesForToday).filter(particle => {
-            particle.follow(flowfields[particle.energyType]); // Make particle follow the flow field
-            particle.update(); // Update particle state
-            return particle.isActive(); // Filter out inactive particles
+        // Add new particles for today and update energyTotals
+        particlesForToday.forEach(particle => {
+            particles.push(particle);
+
+            // Update the energy total for this type
+            let total = energyTotals.get(particle.energyType) || 0;
+            total += particle.energyValue;
+            energyTotals.set(particle.energyType, total);
         });
+
+        // Update existing particles and remove inactive ones
+        particles = particles.filter(particle => {
+            if (!particle.isActive()) {
+                // Subtract the particle's energy from the total before removing
+                let total = energyTotals.get(particle.energyType) || 0;
+                total -= particle.energyValue;
+                energyTotals.set(particle.energyType, total);
+
+                return false;
+            }
+            particle.follow(flowfields[particle.energyType]);
+            particle.update();
+            return true;
+        });
+
+        // Find the maximum total energy among all types (for normalization)
+        let maxTotalEnergy = Math.max(...energyTotals.values());
+
+        // Update the volume and pitch for each sound based on the totals
+        energyTotals.forEach((total, type) => {
+            let sound = getSoundForEnergyType(type);
+
+            // Normalize volume between 0.1 and 0.8
+            let normalizedVolume = map(total, 0, maxTotalEnergy, 0.1, 0.8);
+            normalizedVolume = constrain(normalizedVolume, 0, 1);
+
+            // Get the current volume of the sound
+            let currentVolume = sound.volume();
+
+            // Update the volume only if the change exceeds a threshold
+            if (Math.abs(normalizedVolume - currentVolume) > 0.14) {
+                sound.volume(normalizedVolume);
+            }
+
+            // Normalize pitch between 0.8 and 1.2
+            let normalizedPitch = map(total, 0, maxTotalEnergy, 0.8, 1.2);
+            normalizedPitch = constrain(normalizedPitch, 0.5, 2);
+
+            // Get the current pitch of the sound
+            let currentPitch = sound.rate();
+
+            // Update the pitch only if the change exceeds a threshold
+            if (Math.abs(normalizedPitch - currentPitch) > 0.14) {
+                sound.rate(normalizedPitch);
+            }
+        });
+
         updateUI(currentDate); // Update user interface with current date and energy values
         currentDateIndex++; // Increment date index
     }
@@ -591,8 +668,6 @@ class Particle {
         this.maxsize = map(this.energyRatio, 0, 1, minSize, maxSize); // Calculate maximum size based on energy ratio
         this.size = minSize; // Set initial size to minimum
         this.lifespan = lifeSpan; // Set lifespan
-        this.volume = map(this.energyRatio, 0, 1, 0.1, 0.7); // Calculate volume for sound playback based on energy ratio
-        this.pitch = map(this.energyRatio, 0, 1, 0.1, 0.5); // Calculate pitch for sound playback based on energy ratio
     }
 
     // Method for a particle to follow a flow field
@@ -626,15 +701,7 @@ class Particle {
         let highlightColor = color(config.colorValues.highlight[this.energyType]); // Get highlight color from configuration
         let gradientColor = lerpColor(baseColor, highlightColor, t); // Interpolate between base and highlight colors
         gradientColor.setAlpha(min(edgeAlpha, fadeAlpha)); // Set calculated opacity
-
         this.color = gradientColor; // Update particle color
-
-        if (soundEnabled) {
-            let sound = getSoundForEnergyType(this.energyType); // Retrieve sound object for the energy type
-            sound.setVolume(this.volume); // Set sound volume
-            sound.rate(this.pitch); // Set sound playback rate
-            sound.amp(this.volume, 1); // Set sound amplitude
-        }
 
         // Update position and velocity
         this.vel.add(this.acc); // Update velocity by adding acceleration
@@ -669,8 +736,8 @@ class Particle {
 
         // Glow Effect
         let glowIntensity = this.vel.mag() / this.maxspeed;
-        let glowSize = this.size * (1 + 0.5 * glowIntensity);
-        let glowAlpha = 70 * glowIntensity; // Metà trasparenza massima
+        let glowSize = this.size * (1 + 0.4 * glowIntensity);
+        let glowAlpha = 60 * glowIntensity; // Metà trasparenza massima
         fill(red(this.color), green(this.color), blue(this.color), glowAlpha);
         ellipse(this.pos.x, this.pos.y, glowSize, glowSize);
     }
