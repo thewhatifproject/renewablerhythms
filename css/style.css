@@ -14,6 +14,77 @@
     box-sizing: border-box;
 }
 
+/* --- Button responsive adjustments (final overrides at EOF) --- */
+/* Phones */
+@media (max-width: 599px) {
+    .cta-button,
+    .left-button {
+        font-size: 1rem;
+        padding: 12px 18px;
+        min-height: 48px;
+    }
+    .right-button {
+        width: 56px;
+        height: 56px;
+    }
+}
+
+/* Small tablets */
+@media (min-width: 600px) and (max-width: 767px) {
+    .cta-button,
+    .left-button {
+        font-size: 0.975rem;
+        padding: 12px 18px;
+        min-height: 48px;
+    }
+    .right-button {
+        width: 52px;
+        height: 52px;
+    }
+}
+
+/* Standard tablets */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .cta-button,
+    .left-button {
+        font-size: 0.95rem;
+        padding: 12px 18px;
+        min-height: 48px;
+    }
+    .right-button {
+        width: 48px;
+        height: 48px;
+    }
+}
+
+/* Large tablets */
+@media (min-width: 1025px) and (max-width: 1280px) {
+    .cta-button,
+    .left-button {
+        font-size: 0.95rem;
+        padding: 12px 18px;
+        min-height: 48px;
+    }
+    .right-button {
+        width: 48px;
+        height: 48px;
+    }
+}
+
+/* Desktops */
+@media (min-width: 1281px) {
+    .cta-button,
+    .left-button {
+        font-size: 0.9rem;
+        padding: 10px 16px;
+        min-height: 44px;
+    }
+    .right-button {
+        width: 44px;
+        height: 44px;
+    }
+}
+
 a {
     color: white;
     text-decoration: underline;
@@ -24,26 +95,54 @@ a {
 .bold {
     font-family: 'Montserrat';
     font-size: 1.4em;
+    font-weight: 700;
 }
 
 .light-oblique {
     font-family: 'Montserrat';
     font-size: 0.9em;
+    font-weight: 300;
+    font-style: italic;
 }
 
 .normal {
     font-family: 'Montserrat';
     font-size: 1.2em;
+    font-weight: 400;
 }
 
 .demi-bold {
     font-family: 'Montserrat';
     font-size: 1.2em;
+    font-weight: 600;
 }
 
 .light {
     font-family: 'Montserrat';
     font-size: 0.875em;
+    font-weight: 300;
+}
+
+/* Consistent CTA buttons for Discover / Read Paper */
+.cta-button {
+    background-color: black;
+    color: white;
+    border: 1px solid white;
+    border-radius: 6px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 0.95em;
+    display: inline-block;
+    text-decoration: none !important;
+    min-height: 44px;
+    line-height: 1.2;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.cta-button:hover {
+    background-color: #111;
 }
 
 #loadingScreen {
@@ -67,16 +166,19 @@ a {
 .bold-loading {
     font-family: 'Montserrat';
     font-size: 1.5em;
+    font-weight: 700;
 }
 
 .normal-loading {
     font-family: 'Montserrat';
     font-size: 1em;
+    font-weight: 400;
 }
 
 .light-loading {
     font-family: 'Montserrat';
     font-size: 1.3em;
+    font-weight: 300;
 }
 
 #loadingScreen img {
@@ -231,11 +333,24 @@ main {
     margin-bottom: 10px !important;
 }
 
-.label-container .value-container {
+/* Apply layout to both label and value rows */
+.label-container, .value-container {
     display: flex;
     align-items: center;
     justify-content: flex-start;
     flex-grow: 1;
+}
+
+/* Keep consistent vertical spacing between energy rows during reordering */
+.right-panel .info-section .labels .label-container,
+.right-panel .info-section .values .value-container {
+    margin-bottom: 10px;
+}
+
+/* No extra space after the last row, regardless of classes */
+.right-panel .info-section .labels .label-container:last-child,
+.right-panel .info-section .values .value-container:last-child {
+    margin-bottom: 0 !important;
 }
 
 .legend-circle {
@@ -250,23 +365,42 @@ main {
     background-color: black;
     color: white;
     border: 1px solid white;
-    border-radius: 5px;
-    padding: 8px;
+    border-radius: 6px;
+    padding: 10px 16px;
     cursor: pointer;
     font-family: 'Montserrat', sans-serif;
-    font-size: 0.9em;
+    font-size: 0.95em;
+    font-weight: 600;
+    min-height: 44px;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.left-button:hover {
+    background-color: #111;
 }
 
 .right-button {
-    width: 40px;
-    background-color: black;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     display: flex;
-    border: none;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
     margin: 8px;
+    cursor: pointer;
+    background-color: black;
+    border: 1px solid white;
+    border-radius: 6px;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.right-button:hover {
+    background-color: #111;
 }
 
 .left-button:disabled {
@@ -284,7 +418,7 @@ main {
 }
 
 .right-button img {
-    width: 100%;
+    width: 80%;
     height: auto;
 }
 
@@ -301,6 +435,77 @@ main {
     max-width: 12% !important;
 }
 
+
+/* --- Button responsive adjustments --- */
+/* Phones */
+@media (max-width: 599px) {
+    .cta-button,
+    .left-button {
+        font-size: 1rem;
+        padding: 12px 18px;
+        min-height: 48px;
+    }
+    .right-button {
+        width: 56px;
+        height: 56px;
+    }
+}
+
+/* Small tablets */
+@media (min-width: 600px) and (max-width: 767px) {
+    .cta-button,
+    .left-button {
+        font-size: 0.975rem;
+        padding: 12px 18px;
+        min-height: 48px;
+    }
+    .right-button {
+        width: 52px;
+        height: 52px;
+    }
+}
+
+/* Standard tablets */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .cta-button,
+    .left-button {
+        font-size: 0.95rem;
+        padding: 12px 18px;
+        min-height: 48px;
+    }
+    .right-button {
+        width: 48px;
+        height: 48px;
+    }
+}
+
+/* Large tablets */
+@media (min-width: 1025px) and (max-width: 1280px) {
+    .cta-button,
+    .left-button {
+        font-size: 0.95rem;
+        padding: 12px 18px;
+        min-height: 48px;
+    }
+    .right-button {
+        width: 48px;
+        height: 48px;
+    }
+}
+
+/* Desktops */
+@media (min-width: 1281px) {
+    .cta-button,
+    .left-button {
+        font-size: 0.9rem;
+        padding: 10px 16px;
+        min-height: 44px;
+    }
+    .right-button {
+        width: 44px;
+        height: 44px;
+    }
+}
 
 @media only screen and (min-height: 740px) and (orientation: portrait),
 @media only screen and (min-device-width: 375px) and (max-device-width: 844px) and (-webkit-min-device-pixel-ratio: 3) {

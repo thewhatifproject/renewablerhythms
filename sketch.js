@@ -52,6 +52,15 @@ let energyTotals = new Map([
     ['Hydro', 0]
 ]);
 
+// Sorting controls to reduce jitter in UI order
+const DEFAULT_ENERGY_ORDER = ['Geothermal','Hydro','Biomass','Photovoltaic','Wind'];
+const SORT_MIN_INTERVAL = 600; // ms throttle between reorders
+const SORT_ALPHA = 0.18; // EMA smoothing factor (0..1)
+const SORT_DELTA_GWH = 1.0; // minimal delta to justify swaps
+let currentSortedTypes = DEFAULT_ENERGY_ORDER.slice();
+let smoothedValuesByType = new Map();
+let lastSortTime = 0;
+
 // Loading Resources Checker
 let resourcesLoaded = {
     table: false,
@@ -436,6 +445,10 @@ function resetAndRestart() {
         ['Geothermal', 0],
         ['Hydro', 0]
     ]);
+    // Reset UI sorting helpers
+    smoothedValuesByType = new Map();
+    currentSortedTypes = DEFAULT_ENERGY_ORDER.slice();
+    lastSortTime = 0;
     createParticlesFromData(); // Recreate particles
     initializeFlowFields(); // Initialize flow fields for each energy type
     loop(); // Start the drawing loop
@@ -466,6 +479,116 @@ function updateUI(currentDate) {
             document.getElementById(dailyObj.energyType + "-value").innerText = (`${dailyObj.energyValue.toFixed(2)} GWh`); // Update the display for each energy type
         }
     });
+}
+
+// Animated sorting (FLIP) of energy rows in the right panel based on current values (desc)
+function sortRightPanelAnimated(energyValuesByType) {
+    try {
+        if (!energyValuesByType || typeof energyValuesByType.forEach !== 'function') return;
+
+        // Throttle reorder frequency to let transitions complete
+        const now = millis ? millis() : Date.now();
+        if (now - lastSortTime < SORT_MIN_INTERVAL) return;
+
+        const labelsCol = document.querySelector('.right-panel .info-section .labels');
+        const valuesCol = document.querySelector('.right-panel .info-section .values');
+        if (!labelsCol || !valuesCol) return;
+
+        // Build array [type, value] and sort by value desc
+        const baseOrder = currentSortedTypes && currentSortedTypes.length ? currentSortedTypes : DEFAULT_ENERGY_ORDER;
+        const sorted = Array.from(energyValuesByType.entries())
+            .filter(([type]) => type && document.getElementById(type + '-label') && document.getElementById(type + '-value'))
+            .sort((a, b) => {
+                const va = a[1] || 0;
+                const vb = b[1] || 0;
+                const diff = vb - va;
+                if (Math.abs(diff) < SORT_DELTA_GWH) {
+                    // If values are very close, keep previous relative order (hysteresis)
+                    const ia = baseOrder.indexOf(a[0]);
+                    const ib = baseOrder.indexOf(b[0]);
+                    return ia - ib;
+                }
+                return diff;
+            });
+        const newOrder = sorted.map(([type]) => type);
+
+        // Skip if order unchanged
+        if (currentSortedTypes.length === newOrder.length && currentSortedTypes.every((t, i) => t === newOrder[i])) {
+            return;
+        }
+
+        // Collect element references and initial positions (FLIP First)
+        const labelEls = {};
+        const valueEls = {};
+        const firstRects = {};
+        newOrder.forEach(type => {
+            const labelSpan = document.getElementById(type + '-label');
+            const valueSpan = document.getElementById(type + '-value');
+            if (!labelSpan || !valueSpan) return;
+            const labelRow = labelSpan.closest('.label-container');
+            const valueRow = valueSpan.closest('.value-container');
+            if (!labelRow || !valueRow) return;
+            labelEls[type] = labelRow;
+            valueEls[type] = valueRow;
+            firstRects['L-' + type] = labelRow.getBoundingClientRect();
+            firstRects['V-' + type] = valueRow.getBoundingClientRect();
+        });
+
+        // Reinsert rows in new order keeping the first child (Date) on top
+        newOrder.forEach(type => {
+            const lr = labelEls[type];
+            const vr = valueEls[type];
+            if (lr) labelsCol.appendChild(lr);
+            if (vr) valuesCol.appendChild(vr);
+        });
+
+        // Last positions (FLIP Last) + Play
+        newOrder.forEach(type => {
+            const lr = labelEls[type];
+            const vr = valueEls[type];
+            if (!lr || !vr) return;
+
+            const lastL = lr.getBoundingClientRect();
+            const lastV = vr.getBoundingClientRect();
+            const firstL = firstRects['L-' + type];
+            const firstV = firstRects['V-' + type];
+
+            const dxL = (firstL.left - lastL.left) || 0;
+            const dyL = (firstL.top - lastL.top) || 0;
+            const dxV = (firstV.left - lastV.left) || 0;
+            const dyV = (firstV.top - lastV.top) || 0;
+
+            // Apply invert transform, then animate back to identity
+            lr.style.transform = `translate(${dxL}px, ${dyL}px)`;
+            vr.style.transform = `translate(${dxV}px, ${dyV}px)`;
+            lr.style.transition = 'transform 200ms ease';
+            vr.style.transition = 'transform 200ms ease';
+
+            // Force reflow then clear transform to trigger the transition
+            // eslint-disable-next-line no-unused-expressions
+            lr.offsetWidth; // reflow
+            // eslint-disable-next-line no-unused-expressions
+            vr.offsetWidth; // reflow
+
+            requestAnimationFrame(() => {
+                lr.style.transform = '';
+                vr.style.transform = '';
+            });
+
+            const cleanup = (el) => {
+                el.style.transition = '';
+                el.style.transform = '';
+            };
+            lr.addEventListener('transitionend', () => cleanup(lr), { once: true });
+            vr.addEventListener('transitionend', () => cleanup(vr), { once: true });
+        });
+
+        currentSortedTypes = newOrder.slice();
+        lastSortTime = now;
+    } catch (e) {
+        // Fail-safe: never break the draw loop due to UI sorting
+        // console.warn('sortRightPanelAnimated error', e);
+    }
 }
 
 // Function to store daily production data in a structured format
@@ -647,6 +770,16 @@ function updateParticles() {
         });
 
         updateUI(currentDate); // Update user interface with current date and energy values
+
+        // Update smoothed values (EMA) to reduce jitter and sort less frequently
+        energyValuesByType.forEach((val, type) => {
+            const prev = smoothedValuesByType.has(type) ? smoothedValuesByType.get(type) : val;
+            const smoothed = prev + SORT_ALPHA * (val - prev);
+            smoothedValuesByType.set(type, smoothed);
+        });
+
+        // Sort the right panel rows (animated) using smoothed values
+        sortRightPanelAnimated(smoothedValuesByType);
         currentDateIndex++; // Increment date index
     }
     if (currentDateIndex >= dates.length && dates.length > 0) {
