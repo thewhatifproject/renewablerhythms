@@ -303,6 +303,7 @@ main {
     justify-content: flex-start;
     align-items: flex-start;
     flex: 1;
+    gap: 20px; /* add space between labels and values columns */
 }
 
 .button-section {
@@ -626,6 +627,42 @@ main {
 
     #LoadingIcon img {
         max-width: 20% !important;
+    }
+}
+
+/* --- Desktop refinements: smaller controls + clearer spacing --- */
+@media (min-width: 1280px) {
+    /* Make icon buttons less bulky on desktop */
+    .right-button {
+        width: 40px;
+        height: 40px;
+        margin: 6px;
+    }
+
+    /* Compact primary/secondary buttons without losing accessibility */
+    .cta-button,
+    .left-button {
+        font-size: 0.9rem;
+        padding: 8px 14px;
+        min-height: 40px;
+    }
+
+    /* Improve readability in the label/value panel */
+    .info-section .demi-bold,
+    .info-section .normal {
+        font-size: 0.95rem;
+        line-height: 1.25;
+    }
+
+    /* Slightly increase spacing between legend dot and text */
+    .legend-circle {
+        margin-right: 8px;
+    }
+
+    /* More breathing room between each energy row */
+    .right-panel .info-section .labels .label-container,
+    .right-panel .info-section .values .value-container {
+        margin-bottom: 12px;
     }
 }
 
